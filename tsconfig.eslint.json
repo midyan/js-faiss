@@ -3,6 +3,7 @@
   "include": [
     "**/.eslintrc.cjs",
     ".prettierrc.cjs",
-    "src/**/*"
+    "src/**/*",
+    "rollup.config.js"
   ]
 }
