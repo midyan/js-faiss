@@ -1,3 +1,3 @@
-export * from './Store'
-export * from './Layer'
-export * from './Point'
+export * from "./Store";
+export * from "./hnsw/HNSW";
+export * from "./Point";
