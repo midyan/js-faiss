@@ -4,6 +4,7 @@
     "**/.eslintrc.cjs",
     ".prettierrc.cjs",
     "src/**/*",
-    "rollup.config.js"
+    "rollup.config.js",
+    "jest.config.js"
   ]
 }
