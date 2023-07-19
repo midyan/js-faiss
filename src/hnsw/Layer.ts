@@ -9,9 +9,23 @@ export class Layer {
 
   constructor(level: number, baseNN: number, levelMultiplier: number) {
     this.level = level;
-    this.NN = baseNN * (level + 1);
+    this.NN = baseNN * (level + 2);
     this.levelMultiplier = levelMultiplier;
     this.probability =
       Math.exp(-level / levelMultiplier) * (1 - Math.exp(-1 / levelMultiplier));
+  }
+
+  canAppendPoint() {
+    return Math.random() < this.probability;
+  }
+
+  get stats() {
+    return {
+      level: this.level,
+      NN: this.NN,
+      probability: this.probability,
+      levelMultiplier: this.levelMultiplier,
+      points: this.points.length,
+    };
   }
 }

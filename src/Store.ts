@@ -1,5 +1,5 @@
-import type { Point } from "./Point"
+import type { Point } from "./Point";
 
 export class Store {
-    points: Point[] = []
+  points: { [key: string]: Point } = {};
 }
