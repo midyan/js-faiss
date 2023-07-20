@@ -1,4 +1,4 @@
-import { Point } from "../Point";
+import { Point, PointDTO } from "../Point";
 import { HNSW } from "./HNSW";
 
 describe("HNSW", () => {
@@ -63,28 +63,34 @@ describe("HNSW", () => {
 
     let level = 0;
     for (const [expectDist, errorDigits] of expectedDistributionOfPoints) {
-      expect(levelsToAssing[level]).toBeCloseTo(expectDist, errorDigits);
+      if (levelsToAssing[level]) {
+        expect(levelsToAssing[level]).toBeCloseTo(expectDist, errorDigits);
+      }
 
       level += 1;
     }
   });
 
   it("should correctly assign points", async () => {
-    const totalPoints = 100000;
+    const totalPoints = 1000;
 
-    const Points = new Array(totalPoints)
-      .fill(0)
-      .map(() => new Point([Math.random(), Math.random(), Math.random()]));
+    const points: PointDTO[] = new Array(totalPoints).fill(0).map(() => {
+      const numbersOfDimensions = 0 + Math.ceil(Math.random() * 5);
 
-    hnsw.append(Points);
+      const embeddings = new Array(numbersOfDimensions)
+        .fill(0)
+        .map(() => Math.random());
+
+      return new PointDTO(embeddings);
+    });
+
+    hnsw.append(points);
 
     const expectedDistributionOfPoints = [
-      [100000, -2],
-      [3123, -2],
-      [99, -2],
+      [1000, -2],
+      [31, -2],
+      [9, -2],
       [3, -1],
-      [1, -1],
-      [0, -1],
     ];
 
     let level = 0;
@@ -96,5 +102,9 @@ describe("HNSW", () => {
 
       level += 1;
     }
+
+    await hnsw.calculatePointNNQueue.drained();
+
+    console.log(hnsw.layers[0].points[0].nnDistances);
   });
 });

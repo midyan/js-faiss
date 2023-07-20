@@ -1,5 +1,7 @@
+import * as fastq from "fastq";
+
 import { Store } from "../Store";
-import type { Point } from "../Point";
+import { Point, PointDTO } from "../Point";
 
 import { Layer } from "./Layer";
 
@@ -7,6 +9,23 @@ export class HNSW extends Store {
   layers: Layer[] = [];
   baseNN = 32;
   probabilityThreshold = 1e-9;
+  vectorSpaceDimension = 0;
+
+  calculatePointNNQueue: fastq.queueAsPromised<
+    { point: Point; NN: number; points: Point[] },
+    void
+  >;
+  private nnCalculateWorkerCount = 10;
+
+  constructor() {
+    super();
+
+    this.calculatePointNNQueue = fastq.promise(
+      this,
+      this.calculatePointNN,
+      this.nnCalculateWorkerCount,
+    );
+  }
 
   get levelMultiplier() {
     return 1 / Math.log(this.baseNN);
@@ -17,14 +36,56 @@ export class HNSW extends Store {
     this.createLayers();
   }
 
-  append(pointOrPoints: Point | Point[]) {
+  append(pointOrPoints: PointDTO | PointDTO[]) {
     const points = Array.isArray(pointOrPoints)
       ? pointOrPoints
       : [pointOrPoints];
 
+    let highestLayerInsertedTo = 0;
+
     for (const point of points) {
-      this.appendPoint(point);
+      const insertedPoint = this.appendPoint(point);
+
+      if (insertedPoint.maxLayerNumber > highestLayerInsertedTo) {
+        highestLayerInsertedTo = insertedPoint.maxLayerNumber;
+      }
     }
+
+    this.recalculateNNUpToLayer(highestLayerInsertedTo);
+  }
+
+  private recalculateNNUpToLayer(targetLayer: number) {
+    for (const layer of this.layers) {
+      if (layer.level > targetLayer) break;
+
+      for (const point of layer.points) {
+        point.resetNN();
+      }
+
+      for (const point of layer.points) {
+        this.calculatePointNNInQueue(point, layer.points, layer.NN);
+      }
+    }
+  }
+
+  private calculatePointNNInQueue(point: Point, points: Point[], NN: number) {
+    return this.calculatePointNNQueue.push({
+      point,
+      points,
+      NN,
+    });
+  }
+
+  private calculatePointNN({
+    point,
+    points,
+    NN,
+  }: {
+    point: Point;
+    points: Point[];
+    NN: number;
+  }): Promise<void> {
+    return point.calculateDistances(points, NN, this.vectorSpaceDimension);
   }
 
   createLayers() {
@@ -44,6 +105,10 @@ export class HNSW extends Store {
     }
   }
 
+  get layerStats() {
+    return this.layers.map((layer) => layer.stats);
+  }
+
   get levelToAppend() {
     let baseProbability = Math.random();
 
@@ -58,8 +123,8 @@ export class HNSW extends Store {
     return this.layers.length - 1;
   }
 
-  private appendPoint(point: Point) {
-    const existingPoint = this.points[point.id];
+  private appendPoint(pointDto: PointDTO) {
+    const existingPoint = this.points[pointDto.id];
 
     if (existingPoint) {
       return existingPoint;
@@ -67,18 +132,20 @@ export class HNSW extends Store {
 
     const targetLevel = this.levelToAppend;
 
+    const point = new Point(pointDto.embeddings, targetLevel, pointDto.id);
+
     for (const layer of this.layers) {
       if (layer.level > targetLevel) break;
 
       layer.points.push(point);
     }
-  }
 
-  get layerStats() {
-    return this.layers.map((layer) => layer.stats);
-  }
+    if (point.embeddings.length > this.vectorSpaceDimension) {
+      this.vectorSpaceDimension = point.embeddings.length;
+    }
 
-  //   async build() {}
+    return point;
+  }
 }
 
 export { Layer };
