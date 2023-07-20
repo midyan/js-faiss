@@ -32,7 +32,7 @@ export const getEuclideanDistance = (
   for (let i = 0; i < embeddings1.length; i++) {
     const diff = embeddings1[i] - embeddings2[i];
 
-    sum += diff * diff;
+    sum += diff ** 2;
   }
 
   return Math.sqrt(sum);

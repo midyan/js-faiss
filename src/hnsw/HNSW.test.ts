@@ -105,6 +105,22 @@ describe("HNSW", () => {
 
     await hnsw.calculatePointNNQueue.drained();
 
-    console.log(hnsw.layers[0].points[0].nnDistances);
+    const layer = hnsw.layers[0];
+
+    for (const currentPoint of layer.points) {
+      const sortedNNDistsOfPoint = Object.fromEntries(
+        Object.entries(currentPoint.nnDistances).sort((a, b) => a[1] - b[1]),
+      );
+
+      for (let j = 1; j < layer.NN; j++) {
+        const prevNeighbour = currentPoint.nns[j - 1];
+        const currentNeighbour = currentPoint.nns[j];
+
+        const prevNeighbourDist = sortedNNDistsOfPoint[prevNeighbour.id];
+        const currentNeighbourDist = sortedNNDistsOfPoint[currentNeighbour.id];
+
+        expect(prevNeighbourDist).toBeLessThanOrEqual(currentNeighbourDist);
+      }
+    }
   });
 });
