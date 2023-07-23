@@ -23,12 +23,6 @@ const config = {
     "import/parsers": {
       "@typescript-eslint/parser": [".ts"],
     },
-    "import/resolver": {
-      typescript: {
-        alwaysTryTypes: true,
-        project: "packages/*/tsconfig.json",
-      },
-    },
   },
   rules: {
     "eol-last": ["error", "always"],
