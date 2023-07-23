@@ -27,6 +27,27 @@ export class HNSW extends Store {
     );
   }
 
+  async query(queryCoordinate: number[]) {
+    const entryLayer = this.entryLayer;
+
+    if (!entryLayer) return null;
+
+    const entryPoint = entryLayer.getRandomPoint();
+
+    console.log(entryLayer);
+    console.log(entryPoint);
+  }
+
+  get entryLayer() {
+    const validLayers = this.layers.filter((layer) => layer.points.length > 0);
+
+    if (validLayers.length === 0) {
+      return null;
+    }
+
+    return validLayers[validLayers.length - 1];
+  }
+
   get levelMultiplier() {
     return 1 / Math.log(this.baseNN);
   }

@@ -19,6 +19,20 @@ export class Layer {
     return Math.random() < this.probability;
   }
 
+  getNearestPointTo(coordinate: number[]) {
+    const distances = this.points
+      .map((point) => {
+        return point.getDistanceFrom(coordinate);
+      })
+      .sort((a, b) => a - b);
+
+    return distances[0];
+  }
+
+  getRandomPoint() {
+    return this.points[Math.floor(Math.random() * this.points.length)];
+  }
+
   get stats() {
     return {
       level: this.level,
