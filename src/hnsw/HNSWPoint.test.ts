@@ -3,20 +3,26 @@ import { HNSWPoint } from "./HNSWPoint";
 describe("Point", () => {
   describe("Point Class", () => {
     it("should properly calculate NN per layer", async () => {
-      const testPoint = new HNSWPoint([5.1, 5.2, 5.3], 1);
+      const createPoint = (embeddings: number[], layerNumber: number) => {
+        const basePoint = new HNSWPoint.BasePoint(embeddings);
 
-      const layer2 = [new HNSWPoint([1.4, 1.5, 1.6], 2)];
+        return new HNSWPoint(basePoint, layerNumber);
+      };
+
+      const testPoint = createPoint([5.1, 5.2, 5.3], 1);
+
+      const layer2 = [createPoint([1.4, 1.5, 1.6], 2)];
 
       const layer1 = [
-        new HNSWPoint([2.7, 2.8, 2.9], 1),
-        new HNSWPoint([3.15, 3.25, 3.35], 1),
-        new HNSWPoint([4.45, 4.55, 4.65], 1),
+        createPoint([2.7, 2.8, 2.9], 1),
+        createPoint([3.15, 3.25, 3.35], 1),
+        createPoint([4.45, 4.55, 4.65], 1),
         testPoint,
       ];
 
       const layer0 = [
-        new HNSWPoint([6.75, 6.85, 6.95], 0),
-        new HNSWPoint([7.17, 7.27, 7.37], 0),
+        createPoint([6.75, 6.85, 6.95], 0),
+        createPoint([7.17, 7.27, 7.37], 0),
       ];
 
       const allPoints = [...layer2, ...layer1, ...layer0];

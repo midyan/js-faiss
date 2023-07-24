@@ -1,7 +1,7 @@
 import { Store } from "../Store";
 import { Layer } from "./Layer";
 import { HNSWPoint } from "./HNSWPoint";
-// import type { BasePoint } from "../BasePoint";
+import type { BasePoint } from "../BasePoint";
 
 export interface IHNSWSettings {
   baseNN: number;
@@ -30,7 +30,6 @@ export class HNSW extends Store {
     };
 
     const canContinue = true;
-
     while (canContinue) {
       const layer = new Layer(this.layers.length, {
         baseNN: this.settings.baseNN,
@@ -44,64 +43,72 @@ export class HNSW extends Store {
     }
   }
 
+  add(
+    input: number[] | number[][] | HNSWPoint | HNSWPoint[],
+    overwrite?: boolean,
+  ): HNSWPoint[] {
+    let pointsOrEmbeddings: HNSWPoint[] | number[][];
+
+    if (!Array.isArray(input)) {
+      pointsOrEmbeddings = [input];
+    } else if (isArrayofNumbers(input)) {
+      pointsOrEmbeddings = [input];
+    } else {
+      pointsOrEmbeddings = input;
+    }
+
+    const addedPoints: HNSWPoint[] = [];
+
+    for (const pointOrEmbedding of pointsOrEmbeddings) {
+      let basePoint: BasePoint;
+
+      if (isArrayofNumbers(pointOrEmbedding)) {
+        basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
+
+        const point = this.addPoint(basePoint, overwrite);
+
+        addedPoints.push(point);
+      } else {
+        basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
+      }
+    }
+
+    return addedPoints;
+  }
+
+  private addPoint(point: BasePoint, overwrite?: boolean): HNSWPoint {
+    if (this.points[point.id] && !overwrite) {
+      return this.points[point.id];
+    }
+
+    const layerToAppend = this.getLayerToAppendPoint();
+
+    const hnswPoint = new HNSWPoint(point, layerToAppend.level);
+
+    this.points[point.id] = hnswPoint;
+
+    return hnswPoint;
+  }
+
+  // ---
+
+  getLayerToAppendPoint(): Layer {
+    let baseProbability = Math.random();
+
+    for (const layer of this.layers) {
+      if (baseProbability < layer.assignPropability) {
+        return layer;
+      }
+
+      baseProbability -= layer.assignPropability;
+    }
+
+    return this.layers[this.layers.length - 1];
+  }
+
   get entryLayer(): Layer | null {
     return this.layers.find((layer) => layer.points.length > 0) ?? null;
   }
-
-  // add(
-  //   input: number[] | number[][] | HNSWPoint | HNSWPoint[],
-  //   overwrite?: boolean,
-  // ): any {
-  //   let pointsOrEmbeddings: HNSWPoint[] | number[][];
-
-  //   if (!Array.isArray(input)) {
-  //     pointsOrEmbeddings = [input];
-  //   } else if (isArrayofNumbers(input)) {
-  //     pointsOrEmbeddings = [input];
-  //   } else {
-  //     pointsOrEmbeddings = input;
-  //   }
-
-  //   const addedPoints: HNSWPoint[] = [];
-
-  //   for (const pointOrEmbedding of pointsOrEmbeddings) {
-  //     let basePoint: BasePoint;
-
-  //     if (isArrayofNumbers(pointOrEmbedding)) {
-  //       basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
-  //     } else {
-  //       basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
-  //     }
-
-  //     const point = this.addPoint(basePoint, overwrite);
-  //   }
-
-  //   // if (Array.isArray(input)) {
-  //   //   return this.addMultiple(input, overwrite);
-  //   // }
-
-  //   // return this.addSingle(input, overwrite);
-  // }
-
-  // private addPoint(point: BasePoint, overwrite?: boolean): HNSWPoint {
-  //   if (this.points[point.id] && !overwrite) {
-  //     return this.points[point.id];
-  //   }
-
-  //   const layerToAppend = this.getLayerToAppend();
-  //   //
-  //   const hnswPoint = new HNSWPoint(
-  //     point.embeddings,
-  //     this.layers.length,
-  //     point.id,
-  //   );
-
-  //   this.points[point.id] = hnswPoint;
-
-  //   return hnswPoint;
-  // }
-
-  // ---
 
   get Point() {
     return HNSW.Point;
@@ -116,8 +123,8 @@ export class HNSW extends Store {
   }
 }
 
-// function isArrayofNumbers(value: any): value is number[] {
-//   return (
-//     Array.isArray(value) && value.every((item) => typeof item === "number")
-//   );
-// }
+function isArrayofNumbers(value: any): value is number[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "number")
+  );
+}

@@ -1,12 +1,16 @@
 import { BasePoint } from "../BasePoint";
 
-export class HNSWPoint extends BasePoint {
+export class HNSWPoint {
+  static get BasePoint() {
+    return BasePoint;
+  }
+
+  point: BasePoint;
   maxLayerNumber: number;
   nnPerLayer: Array<Array<{ distance: number; point: HNSWPoint }>> = [];
 
-  constructor(embeddings: number[], maxLayerNumber: number, id?: string) {
-    super(embeddings, id);
-
+  constructor(point: BasePoint, maxLayerNumber: number) {
+    this.point = point;
     this.maxLayerNumber = maxLayerNumber;
   }
 
@@ -51,5 +55,19 @@ export class HNSWPoint extends BasePoint {
         vertexesAdded.add(`${this.id}-${point.point.id}`);
       }
     }
+  }
+
+  // ---
+
+  get id() {
+    return this.point.id;
+  }
+
+  get embeddings() {
+    return this.point.embeddings;
+  }
+
+  get getDistance() {
+    return this.point.getDistance;
   }
 }
