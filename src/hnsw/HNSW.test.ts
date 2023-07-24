@@ -8,6 +8,13 @@ describe("HNSW", () => {
 
   it("should have entry layer null when no layer is created", async () => {
     expect(hnsw.layers).toHaveLength(6);
-    expect(hnsw.entryLayer).toBeNull();
+    expect(hnsw.entryLayer.stats).toStrictEqual({
+      NN: 64,
+      assignPropability: 0.96875,
+      level: 0,
+      settings: {
+        baseNN: 32,
+      },
+    });
   });
 });

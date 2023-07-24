@@ -17,6 +17,7 @@ export class HNSW extends Store {
     probabilityThreshold: 1e-9,
   };
 
+  edgesPerLayer: Array<Record<string, number>> = [];
   points: Record<string, HNSWPoint> = {};
   layers: Layer[] = [];
   settings: IHNSWSettings;
@@ -76,6 +77,68 @@ export class HNSW extends Store {
     return addedPoints;
   }
 
+  getLayerToAppendPoint(): Layer {
+    let baseProbability = Math.random();
+
+    for (const layer of this.layers) {
+      if (baseProbability < layer.assignPropability) {
+        return layer;
+      }
+
+      baseProbability -= layer.assignPropability;
+    }
+
+    return this.layers[this.layers.length - 1];
+  }
+
+  // TODO Divide space into sections and only reindex affected sections
+  index(layerNumber: number = this.entryLayer.level) {
+    // Needs to be here, so we avoid double calculation
+    this.edgesPerLayer = [];
+
+    // Calculates all unique edges per layer
+    for (let i = 0; i <= layerNumber; i += 1) {
+      if (!this.edgesPerLayer[i]) {
+        this.edgesPerLayer[i] = {};
+      }
+
+      const currentVertexMap = this.edgesPerLayer[i];
+
+      // Calculate edges
+      for (const originPointId in this.points) {
+        const originPoint = this.points[originPointId];
+
+        // If current layer is higher than max layer of point, skip
+        if (originPoint.maxLayerNumber < i) continue;
+
+        for (const targetPointId in this.points) {
+          // Don't process itself
+          if (originPointId === targetPointId) continue;
+
+          const targetPoint = this.points[targetPointId];
+
+          const edge = originPoint.getVertex(targetPoint);
+
+          currentVertexMap[edge] =
+            currentVertexMap[edge] ?? originPoint.getDistance(targetPoint);
+        }
+      }
+    }
+
+    // Remove duplicated edge from lower layers
+    for (let i = 0; i <= layerNumber; i += 1) {
+      const revesedLayerNumber = layerNumber - i;
+
+      const currentVertexMap = this.edgesPerLayer[revesedLayerNumber];
+
+      for (const edge in currentVertexMap) {
+        for (let j = 0; j < i; j += 1) {
+          delete this.edgesPerLayer[j][edge];
+        }
+      }
+    }
+  }
+
   private addPoint(point: BasePoint, overwrite?: boolean): HNSWPoint {
     if (this.points[point.id] && !overwrite) {
       return this.points[point.id];
@@ -92,22 +155,10 @@ export class HNSW extends Store {
 
   // ---
 
-  getLayerToAppendPoint(): Layer {
-    let baseProbability = Math.random();
-
-    for (const layer of this.layers) {
-      if (baseProbability < layer.assignPropability) {
-        return layer;
-      }
-
-      baseProbability -= layer.assignPropability;
-    }
-
-    return this.layers[this.layers.length - 1];
-  }
-
-  get entryLayer(): Layer | null {
-    return this.layers.find((layer) => layer.points.length > 0) ?? null;
+  get entryLayer(): Layer {
+    return (
+      this.layers.find((layer) => layer.points.length > 0) ?? this.layers[0]
+    );
   }
 
   get Point() {

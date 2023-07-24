@@ -67,16 +67,42 @@ describe("js-faiss", () => {
       });
 
       it("should properly add points", async () => {
-        const testPoint0 = [0, 0, 0];
-        const testPoint1 = [1, 1, 1];
+        const points = new Array(1000)
+          .fill(0)
+          .map((_, index) => [index, index, index]);
 
-        const result = hnswStore.add([testPoint0, testPoint1]);
+        const result = hnswStore.add(points);
 
         for (const addedPoint of result) {
           expect(hnswStore.points[addedPoint.id]).toStrictEqual(addedPoint);
           expect(hnswStore.basePoints[addedPoint.id]).toStrictEqual(
             addedPoint.point,
           );
+        }
+      });
+
+      it("should index and remove duplicated edges correctly", async () => {
+        hnswStore.index();
+
+        const reversedLayers = hnswStore.edgesPerLayer.slice().reverse();
+
+        for (
+          let currentLayer = 0;
+          currentLayer < reversedLayers.length;
+          currentLayer += 1
+        ) {
+          for (
+            let nextLayer = currentLayer + 1;
+            nextLayer < reversedLayers.length;
+            nextLayer += 1
+          ) {
+            const currentLayerMap = reversedLayers[currentLayer];
+            const nextLayerMap = reversedLayers[nextLayer];
+
+            for (const edge in currentLayerMap) {
+              expect(nextLayerMap[edge]).toBeUndefined();
+            }
+          }
         }
       });
     });

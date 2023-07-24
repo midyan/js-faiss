@@ -43,4 +43,8 @@ export class BasePoint implements BasePointDTO {
       queryCoordinate,
     );
   }
+
+  getVertex(targetPoint: BasePoint) {
+    return [this.id, targetPoint.id].sort().join("-");
+  }
 }
