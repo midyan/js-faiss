@@ -1,60 +1,67 @@
 import faiss from ".";
 
-import { BasePoint } from "./BasePoint";
-
 describe("js-faiss", () => {
   describe("HNSW", () => {
     describe("Basic Use Case", () => {
       const hnswStore = faiss.hnsw({
-        baseNN: 64,
+        baseNN: 32,
       });
 
       it("should properly contruct class", async () => {
         expect(hnswStore.basePoints).toStrictEqual({});
         expect(hnswStore.layersStats).toStrictEqual([
           {
-            NN: 128,
-            assignPropability: 0.984375,
+            NN: 64,
+            assignPropability: 0.96875,
             level: 0,
             settings: {
-              baseNN: 64,
+              baseNN: 32,
+            },
+          },
+          {
+            NN: 96,
+            assignPropability: 0.030273437499999986,
+            level: 1,
+            settings: {
+              baseNN: 32,
+            },
+          },
+          {
+            NN: 128,
+            assignPropability: 0.0009460449218749991,
+            level: 2,
+            settings: {
+              baseNN: 32,
+            },
+          },
+          {
+            NN: 160,
+            assignPropability: 0.00002956390380859371,
+            level: 3,
+            settings: {
+              baseNN: 32,
             },
           },
           {
             NN: 192,
-            assignPropability: 0.015380859375000007,
-            level: 1,
-            settings: {
-              baseNN: 64,
-            },
-          },
-          {
-            NN: 256,
-            assignPropability: 0.00024032592773437516,
-            level: 2,
-            settings: {
-              baseNN: 64,
-            },
-          },
-          {
-            NN: 320,
-            assignPropability: 0.0000037550926208496102,
-            level: 3,
-            settings: {
-              baseNN: 64,
-            },
-          },
-          {
-            NN: 384,
-            assignPropability: 5.867332220077524e-8,
+            assignPropability: 9.23871994018553e-7,
             level: 4,
             settings: {
-              baseNN: 64,
+              baseNN: 32,
+            },
+          },
+          {
+            NN: 224,
+            assignPropability: 2.887099981307982e-8,
+            level: 5,
+            settings: {
+              baseNN: 32,
             },
           },
         ]);
+
         expect(hnswStore.settings).toStrictEqual({
-          baseNN: 64,
+          baseNN: 32,
           probabilityThreshold: 1e-9,
         });
       });
@@ -63,22 +70,14 @@ describe("js-faiss", () => {
         const testPoint0 = [0, 0, 0];
         const testPoint1 = [1, 1, 1];
 
-        const addedPoint0 = hnswStore.addBasePoint(testPoint0);
-        const addedPoint1 = hnswStore.addBasePoint(testPoint1);
+        const result = hnswStore.add([testPoint0, testPoint1]);
 
-        expect(addedPoint0).not.toBeNull();
-        expect(addedPoint0).toBeInstanceOf(BasePoint);
-        expect(addedPoint0?.id).toBeTruthy();
-
-        expect(addedPoint1).not.toBeNull();
-        expect(addedPoint1).toBeInstanceOf(BasePoint);
-        expect(addedPoint1.id).toBeTruthy();
-
-        expect(addedPoint0.id).not.toBe(addedPoint1.id);
-
-        const distance = addedPoint0.getDistance(addedPoint1);
-
-        expect(distance).toBeCloseTo(1.7320508075688772);
+        for (const addedPoint of result) {
+          expect(hnswStore.points[addedPoint.id]).toStrictEqual(addedPoint);
+          expect(hnswStore.basePoints[addedPoint.id]).toStrictEqual(
+            addedPoint.point,
+          );
+        }
       });
     });
   });
