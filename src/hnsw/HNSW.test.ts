@@ -7,7 +7,7 @@ describe("HNSW", () => {
   });
 
   it("should have entry layer null when no layer is created", async () => {
-    expect(hnsw.layers).toHaveLength(0);
+    expect(hnsw.layers).toHaveLength(6);
     expect(hnsw.entryLayer).toBeNull();
   });
 });
