@@ -28,6 +28,7 @@ const config = {
     "eol-last": ["error", "always"],
     /* IMPORT */
     "import/no-unresolved": "error",
+    "@typescript-eslint/no-explicit-any": "off",
   },
 };
 

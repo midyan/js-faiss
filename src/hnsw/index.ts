@@ -3,4 +3,4 @@ import type { IHNSWSettings } from "./HNSW";
 
 export const hnswContent = { HNSW };
 
-export default (settings?: IHNSWSettings) => new HNSW(settings);
+export default (settings?: Partial<IHNSWSettings>) => new HNSW(settings);

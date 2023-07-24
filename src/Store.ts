@@ -1,11 +1,11 @@
 import { BasePoint } from "./BasePoint";
 
 export class Store {
-  points: { [key: string]: BasePoint } = {};
+  basePoints: { [key: string]: BasePoint } = {};
 
-  addPoint(embedding: number[]): BasePoint;
-  addPoint(point: BasePoint, overwrite?: boolean): BasePoint;
-  addPoint(input: number[] | BasePoint, overwrite?: boolean): BasePoint {
+  addBasePoint(embedding: number[], overwrite?: boolean): BasePoint;
+  addBasePoint(point: BasePoint, overwrite?: boolean): BasePoint;
+  addBasePoint(input: number[] | BasePoint, overwrite?: boolean): BasePoint {
     if (input instanceof BasePoint) {
       return this.addSingleBasePoint(input, overwrite);
     }
@@ -20,11 +20,11 @@ export class Store {
   }
 
   private addSingleBasePoint(point: BasePoint, overwrite?: boolean): BasePoint {
-    if (this.points[point.id] && !overwrite) {
+    if (this.basePoints[point.id] && !overwrite) {
       throw new Error(`Point with id ${point.id} already exists`);
     }
 
-    this.points[point.id] = point;
+    this.basePoints[point.id] = point;
 
     return point;
   }

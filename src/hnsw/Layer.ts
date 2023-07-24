@@ -2,7 +2,6 @@ import { HNSWPoint } from "./HNSWPoint";
 
 export interface ILayerSettings {
   baseNN: number;
-  levelMultiplier: number;
 }
 
 export class Layer {
@@ -23,8 +22,8 @@ export class Layer {
 
     this.NN = this.settings.baseNN * (level + 2);
     this.assignPropability =
-      Math.exp(-level / this.settings.levelMultiplier) *
-      (1 - Math.exp(-1 / this.settings.levelMultiplier));
+      Math.exp(-level / this.levelMultiplier) *
+      (1 - Math.exp(-1 / this.levelMultiplier));
   }
 
   canAppendPoint() {
@@ -33,6 +32,12 @@ export class Layer {
 
   getRandomPoint() {
     return this.points[Math.floor(Math.random() * this.points.length)];
+  }
+
+  // ---
+
+  get levelMultiplier() {
+    return 1 / Math.log(this.settings.baseNN);
   }
 
   get stats() {
