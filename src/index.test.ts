@@ -67,7 +67,7 @@ describe("js-faiss", () => {
       });
 
       it("should properly add points", async () => {
-        const points = new Array(10000)
+        const points = new Array(100000)
           .fill(0)
           .map((_, index) => [index, index, index]);
 

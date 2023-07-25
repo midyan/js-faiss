@@ -49,6 +49,24 @@ export class HNSW extends Store {
     }
   }
 
+  query(queryPoint: BasePoint) {
+    let currentPoint = this.entryPoint;
+
+    const visitedPoints = new Set<string>();
+
+    for (
+      let layerNumber = this.layers.length - 1;
+      layerNumber >= 0;
+      layerNumber -= 1
+    ) {
+      const layer = this.layers[layerNumber];
+
+      currentPoint = layer.search(queryPoint, currentPoint, visitedPoints);
+    }
+
+    return currentPoint;
+  }
+
   add(
     input: number[] | number[][] | HNSWPoint | HNSWPoint[],
     overwrite?: boolean,
@@ -65,6 +83,7 @@ export class HNSW extends Store {
 
     const addedPoints: HNSWPoint[] = [];
 
+    // TODO Make it parallel
     for (const pointOrEmbedding of pointsOrEmbeddings) {
       let basePoint: BasePoint;
 
@@ -111,10 +130,19 @@ export class HNSW extends Store {
 
     this.points[point.id] = hnswPoint;
 
+    // Add the point to all the layers below the chosen level
+    for (let i = 0; i < layerToAppend.level; i++) {
+      this.layers[i].points[point.id] = hnswPoint;
+    }
+
     return hnswPoint;
   }
 
   // ---
+
+  get entryPoint() {
+    return this.entryLayer.getRandomPoint();
+  }
 
   get entryLayer(): Layer {
     let indexOfEntry =
