@@ -1,5 +1,5 @@
 import { BasePoint } from "../BasePoint";
-// import type { HNSW } from "./HNSW";
+import type { HNSW } from "./HNSW";
 
 export class HNSWPoint {
   static get BasePoint() {
@@ -8,14 +8,32 @@ export class HNSWPoint {
 
   point: BasePoint;
   maxLayerNumber: number;
-  nnPerLayer: Array<Array<{ distance: number; point: HNSWPoint }>> = [];
+  nnPerLayer: Array<Record<string, number>> = [];
 
   constructor(point: BasePoint, maxLayerNumber: number) {
     this.point = point;
     this.maxLayerNumber = maxLayerNumber;
   }
 
-  index(/* store: HNSW */) {
+  index(store: HNSW) {
+    if (!store) {
+      console.log("beep");
+    }
+
+    // Reset Before Indexing
+    this.nnPerLayer = [];
+
+    for (let i = 0; i <= this.maxLayerNumber; i++) {
+      const layer = store.layers[i];
+
+      this.nnPerLayer[i] = Object.fromEntries(
+        Object.entries(store.edgesPerLayer[i])
+          .filter(([edge]) => edge.includes(this.id))
+          .slice(0, layer.NN)
+          .map(([edge, dist]) => [this.point.getVertexPeer(edge), dist]),
+      );
+    }
+
     return true;
   }
 
@@ -35,5 +53,9 @@ export class HNSWPoint {
 
   get getVertex() {
     return this.point.getVertex;
+  }
+
+  get getVertexPeer() {
+    return this.point.getVertexPeer;
   }
 }

@@ -45,6 +45,10 @@ export class BasePoint implements BasePointDTO {
   }
 
   getVertex(targetPoint: BasePoint) {
-    return [this.id, targetPoint.id].sort().join("-");
+    return [this.id, targetPoint.id].sort().join("_");
+  }
+
+  getVertexPeer(vertex: string) {
+    return vertex.split("_").filter((id) => id !== this.id)[0];
   }
 }

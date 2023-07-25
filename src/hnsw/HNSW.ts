@@ -91,11 +91,25 @@ export class HNSW extends Store {
     return this.layers[this.layers.length - 1];
   }
 
-  // TODO Divide space into sections and only reindex affected sections
+  // TODO Divide vector space into sections and only reindex affected sections
   index(layerNumber: number = this.entryLayer.level) {
+    this.recalculateEdges(layerNumber);
+
+    // TODO Make it parallel
+    for (const pointId in this.points) {
+      const point = this.points[pointId];
+
+      point.index(this);
+
+      break;
+    }
+  }
+
+  private recalculateEdges(layerNumber: number) {
     // Needs to be here, so we avoid double calculation
     this.edgesPerLayer = [];
 
+    // TODO Make in parallel
     // Calculates all unique edges per layer
     for (let i = 0; i <= layerNumber; i += 1) {
       if (!this.edgesPerLayer[i]) {
@@ -105,12 +119,14 @@ export class HNSW extends Store {
       const currentVertexMap = this.edgesPerLayer[i];
 
       // Calculate edges
+      // TODO Make it in parallel
       for (const originPointId in this.points) {
         const originPoint = this.points[originPointId];
 
         // If current layer is higher than max layer of point, skip
         if (originPoint.maxLayerNumber < i) continue;
 
+        // TODO Make it in parallel
         for (const targetPointId in this.points) {
           // Don't process itself
           if (originPointId === targetPointId) continue;
