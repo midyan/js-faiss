@@ -32,9 +32,13 @@ export class HNSW extends Store {
 
     const canContinue = true;
     while (canContinue) {
-      const layer = new Layer(this.layers.length, {
-        baseNN: this.settings.baseNN,
-      });
+      const layer = new Layer(
+        this.layers.length,
+        {
+          baseNN: this.settings.baseNN,
+        },
+        this,
+      );
 
       if (layer.assignPropability < this.settings.probabilityThreshold) {
         break;
@@ -172,9 +176,7 @@ export class HNSW extends Store {
   // ---
 
   get entryLayer(): Layer {
-    return (
-      this.layers.find((layer) => layer.points.length > 0) ?? this.layers[0]
-    );
+    return this.layers[this.layers.length - 1];
   }
 
   get Point() {

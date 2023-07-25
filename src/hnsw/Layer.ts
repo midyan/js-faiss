@@ -1,20 +1,20 @@
-import { HNSWPoint } from "./HNSWPoint";
+import { HNSW } from "./HNSW";
 
 export interface ILayerSettings {
   baseNN: number;
 }
 
 export class Layer {
+  store: HNSW;
   settings: ILayerSettings;
 
   NN: number;
   level: number;
   assignPropability: number;
 
-  points: HNSWPoint[] = [];
-
-  constructor(level: number, layerSettings: ILayerSettings) {
+  constructor(level: number, layerSettings: ILayerSettings, store: HNSW) {
     this.level = level;
+    this.store = store;
 
     this.settings = {
       ...layerSettings,
@@ -31,7 +31,11 @@ export class Layer {
   }
 
   getRandomPoint() {
-    return this.points[Math.floor(Math.random() * this.points.length)];
+    const pointsOfLayer = Object.values(this.store.points).filter(
+      (point) => point.maxLayerNumber <= this.level,
+    );
+
+    return pointsOfLayer[Math.floor(Math.random() * pointsOfLayer.length)];
   }
 
   // ---

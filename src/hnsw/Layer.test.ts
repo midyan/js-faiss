@@ -1,3 +1,4 @@
+import { HNSW } from "./HNSW";
 import { Layer } from "./Layer";
 
 describe("Layer", () => {
@@ -8,25 +9,22 @@ describe("Layer", () => {
     };
     const layers = new Array(5)
       .fill(0)
-      .map((_, index) => new Layer(index, settings));
+      .map((_, index) => new Layer(index, settings, new HNSW()));
 
     expect(layers[0].settings).toStrictEqual(settings);
     expect(layers[0].NN).toBe(64);
     expect(layers[0].level).toBe(0);
     expect(layers[0].assignPropability).toBe(0.96875);
-    expect(layers[0].points).toStrictEqual([]);
 
     expect(layers[1].settings).toStrictEqual(settings);
     expect(layers[1].NN).toBe(96);
     expect(layers[1].level).toBe(1);
     expect(layers[1].assignPropability).toBe(0.030273437499999986);
-    expect(layers[1].points).toStrictEqual([]);
 
     expect(layers[2].settings).toStrictEqual(settings);
     expect(layers[2].NN).toBe(128);
     expect(layers[2].level).toBe(2);
     expect(layers[2].assignPropability).toBe(0.0009460449218749991);
-    expect(layers[2].points).toStrictEqual([]);
 
     expect(layers[3].settings).toStrictEqual(settings);
     expect(layers[3].NN).toBe(160);
