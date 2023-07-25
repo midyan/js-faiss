@@ -128,7 +128,7 @@ export class HNSW extends Store {
         const originPoint = this.points[originPointId];
 
         // If current layer is higher than max layer of point, skip
-        if (originPoint.maxLayerNumber < i) continue;
+        if (originPoint.layer.level < i) continue;
 
         // TODO Make it in parallel
         for (const targetPointId in this.points) {
@@ -166,7 +166,7 @@ export class HNSW extends Store {
 
     const layerToAppend = this.getLayerToAppendPoint();
 
-    const hnswPoint = new HNSWPoint(point, layerToAppend.level);
+    const hnswPoint = new HNSWPoint(point, layerToAppend);
 
     this.points[point.id] = hnswPoint;
 
@@ -176,7 +176,12 @@ export class HNSW extends Store {
   // ---
 
   get entryLayer(): Layer {
-    return this.layers[this.layers.length - 1];
+    let indexOfEntry =
+      this.layers.findIndex((layer) => Object.keys(layer.points).length) - 1;
+
+    if (indexOfEntry < 0) indexOfEntry = 0;
+
+    return this.layers[indexOfEntry];
   }
 
   get Point() {

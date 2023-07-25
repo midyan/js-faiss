@@ -1,4 +1,5 @@
 import { HNSW } from "./HNSW";
+import { HNSWPoint } from "./HNSWPoint";
 
 export interface ILayerSettings {
   baseNN: number;
@@ -7,6 +8,8 @@ export interface ILayerSettings {
 export class Layer {
   store: HNSW;
   settings: ILayerSettings;
+
+  points: Record<string, HNSWPoint> = {};
 
   NN: number;
   level: number;
@@ -32,7 +35,7 @@ export class Layer {
 
   getRandomPoint() {
     const pointsOfLayer = Object.values(this.store.points).filter(
-      (point) => point.maxLayerNumber <= this.level,
+      (point) => point.layer.level <= this.level,
     );
 
     return pointsOfLayer[Math.floor(Math.random() * pointsOfLayer.length)];

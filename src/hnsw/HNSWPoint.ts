@@ -1,18 +1,19 @@
 import { BasePoint } from "../BasePoint";
 import type { HNSW } from "./HNSW";
+import { Layer } from "./Layer";
 
 export class HNSWPoint {
   static get BasePoint() {
     return BasePoint;
   }
 
+  layer: Layer;
   point: BasePoint;
-  maxLayerNumber: number;
   nnPerLayer: Array<Record<string, number>> = [];
 
-  constructor(point: BasePoint, maxLayerNumber: number) {
+  constructor(point: BasePoint, layer: Layer) {
     this.point = point;
-    this.maxLayerNumber = maxLayerNumber;
+    this.layer = layer;
   }
 
   index(store: HNSW) {
@@ -23,7 +24,7 @@ export class HNSWPoint {
     // Reset Before Indexing
     this.nnPerLayer = [];
 
-    for (let i = 0; i <= this.maxLayerNumber; i++) {
+    for (let i = 0; i <= this.layer.level; i++) {
       const layer = store.layers[i];
 
       this.nnPerLayer[i] = Object.fromEntries(
