@@ -82,7 +82,7 @@ describe("js-faiss", () => {
       });
 
       it("should index and remove duplicated edges correctly", async () => {
-        hnswStore.index();
+        await hnswStore.index();
 
         const reversedLayers = hnswStore.edgesPerLayer.slice().reverse();
 

@@ -1,7 +1,9 @@
 import { Store } from "../Store";
 import { Layer } from "./Layer";
 import { HNSWPoint } from "./HNSWPoint";
-import type { BasePoint } from "../BasePoint";
+import { BasePoint } from "../BasePoint";
+
+import * as fastq from "fastq";
 
 export interface IHNSWSettings {
   baseNN: number;
@@ -21,6 +23,19 @@ export class HNSW extends Store {
   points: Record<string, HNSWPoint> = {};
   layers: Layer[] = [];
   settings: IHNSWSettings;
+
+  calculateEdgesQueue: fastq.queue<
+    {
+      targetPointId: string;
+      originPointId: string;
+      layerNumber: number;
+    },
+    void
+  > = fastq.default(this.calculateEdges.bind(this), 1);
+  recalculateEdgesOfLayerQueue: fastq.queue<number, void> = fastq.default(
+    this.recalculateEdgesOfLayer.bind(this),
+    1,
+  );
 
   constructor(settings?: Partial<IHNSWSettings>) {
     super();
@@ -96,8 +111,8 @@ export class HNSW extends Store {
   }
 
   // TODO Divide vector space into sections and only reindex affected sections
-  index(layerNumber: number = this.entryLayer.level) {
-    this.recalculateEdges(layerNumber);
+  async index(layerNumber: number = this.entryLayer.level) {
+    await this.recalculateEdges(layerNumber);
 
     // TODO Make it parallel
     for (const pointId in this.points) {
@@ -109,40 +124,60 @@ export class HNSW extends Store {
     }
   }
 
-  private recalculateEdges(layerNumber: number) {
+  private calculateEdges({
+    targetPointId,
+    originPointId,
+    layerNumber,
+  }: {
+    targetPointId: string;
+    originPointId: string;
+    layerNumber: number;
+  }) {
+    const originPoint = this.points[originPointId];
+    const targetPoint = this.points[targetPointId];
+
+    const edge = originPoint.getVertex(targetPoint);
+
+    this.edgesPerLayer[layerNumber][edge] =
+      this.edgesPerLayer[layerNumber][edge] ??
+      originPoint.getDistance(targetPoint);
+  }
+
+  private recalculateEdgesOfLayer(layerNumber: number) {
+    if (!this.edgesPerLayer[layerNumber]) {
+      this.edgesPerLayer[layerNumber] = {};
+    }
+
+    // Calculate edges
+    // TODO Make it in parallel
+    for (const originPointId in this.points) {
+      const originPoint = this.points[originPointId];
+
+      // If current layer is higher than max layer of point, skip
+      if (originPoint.layer.level < layerNumber) continue;
+
+      // TODO Make it in parallel
+      for (const targetPointId in this.points) {
+        // Don't process itself
+        if (originPointId === targetPointId) continue;
+
+        this.calculateEdgesQueue.push({
+          targetPointId,
+          originPointId,
+          layerNumber,
+        });
+      }
+    }
+  }
+
+  private async recalculateEdges(layerNumber: number) {
     // Needs to be here, so we avoid double calculation
     this.edgesPerLayer = [];
 
     // TODO Make in parallel
     // Calculates all unique edges per layer
     for (let i = 0; i <= layerNumber; i += 1) {
-      if (!this.edgesPerLayer[i]) {
-        this.edgesPerLayer[i] = {};
-      }
-
-      const currentVertexMap = this.edgesPerLayer[i];
-
-      // Calculate edges
-      // TODO Make it in parallel
-      for (const originPointId in this.points) {
-        const originPoint = this.points[originPointId];
-
-        // If current layer is higher than max layer of point, skip
-        if (originPoint.layer.level < i) continue;
-
-        // TODO Make it in parallel
-        for (const targetPointId in this.points) {
-          // Don't process itself
-          if (originPointId === targetPointId) continue;
-
-          const targetPoint = this.points[targetPointId];
-
-          const edge = originPoint.getVertex(targetPoint);
-
-          currentVertexMap[edge] =
-            currentVertexMap[edge] ?? originPoint.getDistance(targetPoint);
-        }
-      }
+      this.recalculateEdgesOfLayerQueue.push(i);
     }
 
     // Remove duplicated edge from lower layers
