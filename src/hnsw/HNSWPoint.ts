@@ -1,5 +1,5 @@
 import { BasePoint } from "../BasePoint";
-import type { HNSW } from "./HNSW";
+
 import { Layer } from "./Layer";
 
 export class HNSWPoint {
@@ -14,28 +14,6 @@ export class HNSWPoint {
   constructor(point: BasePoint, layer: Layer) {
     this.point = point;
     this.layer = layer;
-  }
-
-  index(store: HNSW) {
-    if (!store) {
-      console.log("beep");
-    }
-
-    // Reset Before Indexing
-    this.nnPerLayer = [];
-
-    for (let i = 0; i <= this.layer.level; i++) {
-      const layer = store.layers[i];
-
-      this.nnPerLayer[i] = Object.fromEntries(
-        Object.entries(store.edgesPerLayer[i])
-          .filter(([edge]) => edge.includes(this.id))
-          .slice(0, layer.NN)
-          .map(([edge, dist]) => [this.point.getVertexPeer(edge), dist]),
-      );
-    }
-
-    return true;
   }
 
   // ---

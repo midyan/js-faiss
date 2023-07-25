@@ -3,8 +3,6 @@ import { Layer } from "./Layer";
 import { HNSWPoint } from "./HNSWPoint";
 import { BasePoint } from "../BasePoint";
 
-import * as fastq from "fastq";
-
 export interface IHNSWSettings {
   baseNN: number;
   probabilityThreshold: number;
@@ -19,23 +17,11 @@ export class HNSW extends Store {
     probabilityThreshold: 1e-9,
   };
 
-  edgesPerLayer: Array<Record<string, number>> = [];
+  highestLayer = 0;
+
   points: Record<string, HNSWPoint> = {};
   layers: Layer[] = [];
   settings: IHNSWSettings;
-
-  calculateEdgesQueue: fastq.queue<
-    {
-      targetPointId: string;
-      originPointId: string;
-      layerNumber: number;
-    },
-    void
-  > = fastq.default(this.calculateEdges.bind(this), 1);
-  recalculateEdgesOfLayerQueue: fastq.queue<number, void> = fastq.default(
-    this.recalculateEdgesOfLayer.bind(this),
-    1,
-  );
 
   constructor(settings?: Partial<IHNSWSettings>) {
     super();
@@ -84,13 +70,13 @@ export class HNSW extends Store {
 
       if (isArrayofNumbers(pointOrEmbedding)) {
         basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
-
-        const point = this.addPoint(basePoint, overwrite);
-
-        addedPoints.push(point);
       } else {
         basePoint = this.addBasePoint(pointOrEmbedding, overwrite);
       }
+
+      const point = this.addPoint(basePoint, overwrite);
+
+      addedPoints.push(point);
     }
 
     return addedPoints;
@@ -110,96 +96,16 @@ export class HNSW extends Store {
     return this.layers[this.layers.length - 1];
   }
 
-  // TODO Divide vector space into sections and only reindex affected sections
-  async index(layerNumber: number = this.entryLayer.level) {
-    await this.recalculateEdges(layerNumber);
-
-    // TODO Make it parallel
-    for (const pointId in this.points) {
-      const point = this.points[pointId];
-
-      point.index(this);
-
-      break;
-    }
-  }
-
-  private calculateEdges({
-    targetPointId,
-    originPointId,
-    layerNumber,
-  }: {
-    targetPointId: string;
-    originPointId: string;
-    layerNumber: number;
-  }) {
-    const originPoint = this.points[originPointId];
-    const targetPoint = this.points[targetPointId];
-
-    const edge = originPoint.getVertex(targetPoint);
-
-    this.edgesPerLayer[layerNumber][edge] =
-      this.edgesPerLayer[layerNumber][edge] ??
-      originPoint.getDistance(targetPoint);
-  }
-
-  private recalculateEdgesOfLayer(layerNumber: number) {
-    if (!this.edgesPerLayer[layerNumber]) {
-      this.edgesPerLayer[layerNumber] = {};
-    }
-
-    // Calculate edges
-    // TODO Make it in parallel
-    for (const originPointId in this.points) {
-      const originPoint = this.points[originPointId];
-
-      // If current layer is higher than max layer of point, skip
-      if (originPoint.layer.level < layerNumber) continue;
-
-      // TODO Make it in parallel
-      for (const targetPointId in this.points) {
-        // Don't process itself
-        if (originPointId === targetPointId) continue;
-
-        this.calculateEdgesQueue.push({
-          targetPointId,
-          originPointId,
-          layerNumber,
-        });
-      }
-    }
-  }
-
-  private async recalculateEdges(layerNumber: number) {
-    // Needs to be here, so we avoid double calculation
-    this.edgesPerLayer = [];
-
-    // TODO Make in parallel
-    // Calculates all unique edges per layer
-    for (let i = 0; i <= layerNumber; i += 1) {
-      this.recalculateEdgesOfLayerQueue.push(i);
-    }
-
-    // Remove duplicated edge from lower layers
-    for (let i = 0; i <= layerNumber; i += 1) {
-      const revesedLayerNumber = layerNumber - i;
-
-      const currentVertexMap = this.edgesPerLayer[revesedLayerNumber];
-
-      for (const edge in currentVertexMap) {
-        for (let j = 0; j < i; j += 1) {
-          delete this.edgesPerLayer[j][edge];
-        }
-      }
-    }
-  }
-
   private addPoint(point: BasePoint, overwrite?: boolean): HNSWPoint {
     if (this.points[point.id] && !overwrite) {
       return this.points[point.id];
     }
 
     const layerToAppend = this.getLayerToAppendPoint();
+
+    if (layerToAppend.level > this.highestLayer) {
+      this.highestLayer = layerToAppend.level;
+    }
 
     const hnswPoint = new HNSWPoint(point, layerToAppend);
 
