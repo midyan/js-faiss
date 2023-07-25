@@ -8,6 +8,8 @@ export interface IHNSWSettings {
   probabilityThreshold: number;
 }
 
+// TODO Add serialization to disk
+
 export class HNSW extends Store {
   static Point = HNSWPoint;
   static Layer = Layer;

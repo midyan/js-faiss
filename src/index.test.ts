@@ -80,6 +80,8 @@ describe("js-faiss", () => {
           );
         }
       });
+
+      it.todo("should properly query points");
     });
   });
 });
