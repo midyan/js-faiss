@@ -29,7 +29,7 @@ This package aims to make it easy for developers to experiment, benchmark, and e
     - [ ] Search implementation
     - [ ] Benchmarking and optimization
 - [ ] Data Persistency
-- [ ] Publish to NPM
+- [x] Publish to NPM
 # Limitations
 
 Memory management in JS is a pain. Right now we can handle up to 100k points in memory, but we're working on a solution to handle more. Let's get a working version first.
@@ -45,7 +45,6 @@ $ Querying HNSW for nearest neighbor: 131.977ms
 
 Follow the instructions below to set up js-faiss on your local machine:
 
-NOTE: NOT PUBLISHED YET :D 
 ```shell
 $ npm install js-faiss
 ```
