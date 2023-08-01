@@ -16,9 +16,29 @@ export class BasePoint implements BasePointDTO {
   id: string;
   embeddings: number[];
 
+  static normalizeEmbeddings(embeddings: number[]) {
+    const distToOrigin = geometry.getEuclideanDistance(embeddings, [0, 0, 0]);
+
+    // Already normalized
+    if (distToOrigin <= 1) {
+      return embeddings;
+    }
+
+    return embeddings.map((coordinate) => coordinate / distToOrigin);
+  }
+
   constructor(embeddings: number[], id?: string) {
     this.id = id ?? uuid();
-    this.embeddings = embeddings;
+
+    const embeddingsAreAllZeros = embeddings.every(
+      (coordinate) => coordinate === 0,
+    );
+
+    if (embeddingsAreAllZeros) {
+      throw new Error("Embeddings cannot be all zeros");
+    }
+
+    this.embeddings = BasePoint.normalizeEmbeddings(embeddings);
   }
 
   getDistance(targetPoint: BasePoint) {

@@ -17,7 +17,9 @@ export const getEuclideanDistance = (
 ) => {
   let sum = 0;
 
-  for (let i = 0; i < embeddings1.length; i++) {
+  const size = Math.max(embeddings1.length, embeddings2.length);
+
+  for (let i = 0; i < size; i++) {
     const diff = (embeddings1[i] || 0) - (embeddings2[i] || 0);
 
     sum += diff ** 2;

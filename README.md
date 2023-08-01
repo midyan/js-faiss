@@ -29,6 +29,10 @@ This package aims to make it easy for developers to experiment, benchmark, and e
     - [ ] Search implementation
     - [ ] Benchmarking and optimization
 
+# Limitations
+
+Memory management in JS is a pain. Right now we can handle up to 100k points in memory, but we're working on a solution to handle more. Let's get a working version first.
+
 # 🛠 Installation
 
 Follow the instructions below to set up js-faiss on your local machine:

@@ -51,7 +51,9 @@ export class HNSW extends Store {
     }
   }
 
-  query(queryPoint: BasePoint) {
+  query(pointEmbeddings: BasePoint["embeddings"]) {
+    const point = new BasePoint(pointEmbeddings);
+
     let currentPoint = this.entryPoint;
 
     const visitedPoints = new Set<string>();
@@ -63,7 +65,7 @@ export class HNSW extends Store {
     ) {
       const layer = this.layers[layerNumber];
 
-      currentPoint = layer.search(queryPoint, currentPoint, visitedPoints);
+      currentPoint = layer.search(point, currentPoint, visitedPoints);
     }
 
     return currentPoint;
@@ -148,7 +150,7 @@ export class HNSW extends Store {
 
   get entryLayer(): Layer {
     let indexOfEntry =
-      this.layers.findIndex((layer) => Object.keys(layer.points).length) - 1;
+      this.layers.findIndex((layer) => !Object.keys(layer.points).length) - 1;
 
     if (indexOfEntry < 0) indexOfEntry = 0;
 

@@ -33,9 +33,6 @@ export class HNSW extends Store {
     if (!entryLayer) return null;
 
     const entryPoint = entryLayer.getRandomPoint();
-
-    console.log(entryLayer);
-    console.log(entryPoint);
   }
 
   get entryLayer() {

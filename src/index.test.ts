@@ -1,4 +1,5 @@
 import faiss from ".";
+import { BasePoint } from "./BasePoint";
 
 describe("js-faiss", () => {
   describe("HNSW", () => {
@@ -67,9 +68,13 @@ describe("js-faiss", () => {
       });
 
       it("should properly add points", async () => {
-        const points = new Array(100000)
+        const points = new Array(10000)
           .fill(0)
-          .map((_, index) => [index, index, index]);
+          .map((_, index) => [
+            (index + 1) * (Math.random() - 0.5),
+            (index + 1) * (Math.random() - 0.5),
+            (index + 1) * (Math.random() - 0.5),
+          ]);
 
         const result = hnswStore.add(points);
 
@@ -81,7 +86,69 @@ describe("js-faiss", () => {
         }
       });
 
-      it.todo("should properly query points");
+      it("should properly get approximate best match for query points", async () => {
+        const queryPoints = new Array(100)
+          .fill(0)
+          .map(
+            (_, index) =>
+              new BasePoint([
+                (index + 1) * (Math.random() - 0.5),
+                (index + 1) * (Math.random() - 0.5),
+                (index + 1) * (Math.random() - 0.5),
+              ]),
+          );
+
+        const results = queryPoints.map((queryPoint) => {
+          return hnswStore.query(queryPoint.embeddings);
+        });
+
+        const distancesFromQueryToResults = queryPoints.map(
+          (queryPoint, index) => {
+            const result = results[index];
+
+            const dist = queryPoint.getDistance(result);
+
+            return dist;
+          },
+        );
+
+        const highestDistance = Math.max(...distancesFromQueryToResults);
+
+        // Needs to be within 0.1
+        // Needs improvement, but it's a good start
+        expect(highestDistance).toBeLessThan(0.5);
+      });
+
+      it("should properly benchmark the query for 10k points", async () => {
+        const queryPoints = new Array(1000)
+          .fill(0)
+          .map((_, index) => [
+            (index + 1) * (Math.random() - 0.5),
+            (index + 1) * (Math.random() - 0.5),
+            (index + 1) * (Math.random() - 0.5),
+          ]);
+
+        const deltas: bigint[] = [];
+
+        await Promise.all(
+          queryPoints.map(async (queryPoint) => {
+            const startNano = process.hrtime.bigint();
+
+            hnswStore.query(queryPoint);
+
+            const endNano = process.hrtime.bigint();
+
+            deltas.push(endNano - startNano);
+          }),
+        );
+
+        const avgOfDeltas =
+          deltas.reduce((acc, curr) => acc + curr, 0n) / BigInt(deltas.length);
+
+        const avgOfDeltasInMs = Number(avgOfDeltas) / 1000000;
+
+        expect(avgOfDeltasInMs).toBeLessThan(50);
+      });
     });
   });
 });

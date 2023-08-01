@@ -36,7 +36,6 @@ export class Layer {
     entryPoint: HNSWPoint,
     visitedPoints: Set<string>,
   ) {
-    // Should this be shared globally or per layer?
     let currentPoint = entryPoint;
 
     let continueSerching = true;
@@ -77,9 +76,7 @@ export class Layer {
   }
 
   getRandomPoint() {
-    const pointsOfLayer = Object.values(this.store.points).filter(
-      (point) => point.layer.level <= this.level,
-    );
+    const pointsOfLayer = Object.values(this.points);
 
     return pointsOfLayer[Math.floor(Math.random() * pointsOfLayer.length)];
   }
