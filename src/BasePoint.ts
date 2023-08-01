@@ -19,11 +19,6 @@ export class BasePoint implements BasePointDTO {
   static normalizeEmbeddings(embeddings: number[]) {
     const distToOrigin = geometry.getEuclideanDistance(embeddings, [0, 0, 0]);
 
-    // Already normalized
-    if (distToOrigin <= 1) {
-      return embeddings;
-    }
-
     return embeddings.map((coordinate) => coordinate / distToOrigin);
   }
 

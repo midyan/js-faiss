@@ -43,7 +43,9 @@ export class Layer {
     while (continueSerching) {
       let isLocalMinimum = true;
 
-      for (const pointId of this.getNNOfPoint(currentPoint)) {
+      const NNs = this.getNNOfPoint(currentPoint);
+
+      for (const pointId of NNs) {
         if (visitedPoints.has(pointId)) {
           continue;
         }
@@ -55,7 +57,7 @@ export class Layer {
 
         // If the distance is smaller than the current point
         // we have found a new local minimum, so we continue searching from there
-        if (pointDistance < currentPoint.getDistance(queryPoint)) {
+        if (pointDistance <= currentPoint.getDistance(queryPoint)) {
           isLocalMinimum = false;
 
           currentPoint = this.store.points[pointId];
@@ -76,9 +78,15 @@ export class Layer {
   }
 
   getRandomPoint() {
-    const pointsOfLayer = Object.values(this.points);
+    const points = Object.values(this.points);
 
-    return pointsOfLayer[Math.floor(Math.random() * pointsOfLayer.length)];
+    for (const point of points) {
+      if (Math.random() < 0.5) {
+        return point;
+      }
+    }
+
+    return points[0];
   }
 
   // ---
@@ -105,6 +113,7 @@ export class Layer {
       level: this.level,
       settings: this.settings,
       assignPropability: this.assignPropability,
+      points: Object.keys(this.points).length,
     };
   }
 }

@@ -12,6 +12,7 @@ describe("HNSW", () => {
       NN: 64,
       assignPropability: 0.96875,
       level: 0,
+      points: 0,
       settings: {
         baseNN: 32,
       },

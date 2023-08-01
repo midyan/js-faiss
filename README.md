@@ -1,4 +1,4 @@
-# Current Status: PRE-ALPHA-DEVELOPMENT
+# Current Status: ALPHA-DEVELOPMENT
 
 # js-faiss
 
@@ -11,13 +11,13 @@ This package aims to make it easy for developers to experiment, benchmark, and e
 # Current Features
 
 - [x] Base Vector Store
-- [ ] Data Persistency
-- [ ] HNSW 🚧
+- [x] HNSW
     - [x] Adding new points to the vector store
-    - [ ] Search implementation 🚧
-    - [ ] Benchmarking and optimization 🚧
+    - [x] Search implementation
+    - [x] Benchmarking and optimization
 - [ ] ANN
-    - [ ] Adding new points to the vector store
+    - [ ] Adding new points to the vect
+    or store
     - [ ] Search implementation
     - [ ] Benchmarking and optimization
 - [ ] kNN
@@ -28,10 +28,18 @@ This package aims to make it easy for developers to experiment, benchmark, and e
     - [ ] Adding new points to the vector store
     - [ ] Search implementation
     - [ ] Benchmarking and optimization
-
+- [ ] Data Persistency
+- [ ] Publish to NPM
 # Limitations
 
 Memory management in JS is a pain. Right now we can handle up to 100k points in memory, but we're working on a solution to handle more. Let's get a working version first.
+
+# Benchmarks
+```sh
+$ js-faiss % node benchmark.js
+$ Adding 10647 points to HNSW: 30.073ms
+$ Querying HNSW for nearest neighbor: 131.977ms
+```
 
 # 🛠 Installation
 
@@ -49,12 +57,20 @@ This will install the necessary dependencies and set up the project for use.
 Import the desired algorithms from the package and start using them as per your requirements:
 
 ```javascript
-import faiss from 'js-faiss';
+import jsFaiss from 'js-faiss';
 
-const hnsw = faiss.hnsw(/*...*/);
+// HNSW Example
+const hnswStore = jsFaiss.hnsw({
+  baseNN: 32,
+});
+
 // add points, search, etc.
+hnswStore.add([
+    [1, 1, 1],
+    [0, 1, 2]
+])
 
-// similarly for other algorithms...
+const nearestNeighbors = hnswStore.search([1.5, 1.2, 1.1]);
 ```
 
 # 🌟 Contributing

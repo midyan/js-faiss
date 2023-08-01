@@ -65,6 +65,10 @@ export class HNSW extends Store {
     ) {
       const layer = this.layers[layerNumber];
 
+      if (Object.keys(layer.points).length === 0) {
+        continue;
+      }
+
       currentPoint = layer.search(point, currentPoint, visitedPoints);
     }
 
@@ -135,7 +139,7 @@ export class HNSW extends Store {
     this.points[point.id] = hnswPoint;
 
     // Add the point to all the layers below the chosen level
-    for (let i = 0; i < layerToAppend.level; i++) {
+    for (let i = 0; i <= layerToAppend.level; i++) {
       this.layers[i].points[point.id] = hnswPoint;
     }
 

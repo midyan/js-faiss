@@ -5,6 +5,7 @@
     ".prettierrc.cjs",
     "src/**/*",
     "rollup.config.js",
-    "jest.config.js"
+    "jest.config.js",
+    "benchmark.js"
   ]
 }

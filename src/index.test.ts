@@ -1,5 +1,6 @@
-import faiss from ".";
+import * as faiss from ".";
 import { BasePoint } from "./BasePoint";
+import { geometry } from "./utils";
 
 describe("js-faiss", () => {
   describe("HNSW", () => {
@@ -15,6 +16,7 @@ describe("js-faiss", () => {
             NN: 64,
             assignPropability: 0.96875,
             level: 0,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -23,6 +25,7 @@ describe("js-faiss", () => {
             NN: 96,
             assignPropability: 0.030273437499999986,
             level: 1,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -31,6 +34,7 @@ describe("js-faiss", () => {
             NN: 128,
             assignPropability: 0.0009460449218749991,
             level: 2,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -39,6 +43,7 @@ describe("js-faiss", () => {
             NN: 160,
             assignPropability: 0.00002956390380859371,
             level: 3,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -47,6 +52,7 @@ describe("js-faiss", () => {
             NN: 192,
             assignPropability: 9.23871994018553e-7,
             level: 4,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -55,6 +61,7 @@ describe("js-faiss", () => {
             NN: 224,
             assignPropability: 2.887099981307982e-8,
             level: 5,
+            points: 0,
             settings: {
               baseNN: 32,
             },
@@ -68,15 +75,17 @@ describe("js-faiss", () => {
       });
 
       it("should properly add points", async () => {
-        const points = new Array(10000)
-          .fill(0)
-          .map((_, index) => [
-            (index + 1) * (Math.random() - 0.5),
-            (index + 1) * (Math.random() - 0.5),
-            (index + 1) * (Math.random() - 0.5),
-          ]);
+        const size = 9;
+
+        const points = geometry.create3DGridOfSize(size);
+
+        expect(points.length).toBe(size % 2 !== 0 ? size ** 3 : size ** 3 - 1);
 
         const result = hnswStore.add(points);
+
+        const pointsInLayer = Object.keys(hnswStore.layers[0].points).length;
+
+        expect(pointsInLayer).toBe(points.length);
 
         for (const addedPoint of result) {
           expect(hnswStore.points[addedPoint.id]).toStrictEqual(addedPoint);
@@ -86,61 +95,31 @@ describe("js-faiss", () => {
         }
       });
 
-      it("should properly get approximate best match for query points", async () => {
-        const queryPoints = new Array(100)
-          .fill(0)
-          .map(
-            (_, index) =>
-              new BasePoint([
-                (index + 1) * (Math.random() - 0.5),
-                (index + 1) * (Math.random() - 0.5),
-                (index + 1) * (Math.random() - 0.5),
-              ]),
+      it("should properly get approximate best match for query points and benchmark it", async () => {
+        const queryPoints = geometry.create3DGridOfSize(9).map((point) => {
+          return new BasePoint(
+            point.map((coordinate) => coordinate * Math.random()),
           );
-
-        const results = queryPoints.map((queryPoint) => {
-          return hnswStore.query(queryPoint.embeddings);
         });
 
-        const distancesFromQueryToResults = queryPoints.map(
-          (queryPoint, index) => {
-            const result = results[index];
-
-            const dist = queryPoint.getDistance(result);
-
-            return dist;
-          },
-        );
-
-        const highestDistance = Math.max(...distancesFromQueryToResults);
-
-        // Needs to be within 0.1
-        // Needs improvement, but it's a good start
-        expect(highestDistance).toBeLessThan(0.5);
-      });
-
-      it("should properly benchmark the query for 10k points", async () => {
-        const queryPoints = new Array(1000)
-          .fill(0)
-          .map((_, index) => [
-            (index + 1) * (Math.random() - 0.5),
-            (index + 1) * (Math.random() - 0.5),
-            (index + 1) * (Math.random() - 0.5),
-          ]);
+        // Found by running the query on the store and checking the distance
+        const maxDistance = 0.2;
 
         const deltas: bigint[] = [];
 
-        await Promise.all(
-          queryPoints.map(async (queryPoint) => {
-            const startNano = process.hrtime.bigint();
+        for (const queryPoint of queryPoints) {
+          const startNano = process.hrtime.bigint();
 
-            hnswStore.query(queryPoint);
+          const result = hnswStore.query(queryPoint.embeddings);
 
-            const endNano = process.hrtime.bigint();
+          const endNano = process.hrtime.bigint();
 
-            deltas.push(endNano - startNano);
-          }),
-        );
+          deltas.push(endNano - startNano);
+
+          const distance = result.getDistance(queryPoint);
+
+          expect(distance).toBeLessThan(maxDistance);
+        }
 
         const avgOfDeltas =
           deltas.reduce((acc, curr) => acc + curr, 0n) / BigInt(deltas.length);

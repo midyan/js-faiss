@@ -5,6 +5,12 @@
   "repository": "git@github.com:midyan/js-faiss.git",
   "author": "Yan Nunes <yannunes@gmail.com>",
   "license": "MIT",
+  "exports": {
+    "./*": {
+      "import": "./build/index.esm.js",
+      "require": "./build/index.cjs.js"
+    }
+  },
   "scripts": {
     "check": "tsc --noEmit",
     "build": "rollup -c rollup.config.js",

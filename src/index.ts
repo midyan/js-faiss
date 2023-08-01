@@ -1,7 +1,5 @@
 import hnsw from "./hnsw";
 
-export const faissContent = {
-  hnsw,
-};
+import * as utils from "./utils";
 
-export default faissContent;
+export { hnsw, utils };
