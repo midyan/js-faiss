@@ -1,5 +1,5 @@
 {
-  "name": "@midyan/js-faiss",
+  "name": "js-faiss",
   "version": "1.0.0",
   "main": "build/index.js",
   "repository": "git@github.com:midyan/js-faiss.git",
