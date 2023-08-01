@@ -1,9 +1,9 @@
-name: NPM Test and Publish
+name: Yarn Test and Publish
 
 on:
   push:
     branches:
-      - "*" 
+      - "*"
     tags:
       - "v*"
 
@@ -20,14 +20,17 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Yarn
+        run: npm install -g yarn
+
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Run tests
-        run: npm test
+        run: yarn test
 
   build-and-publish:
-    needs: test 
+    needs: test
     runs-on: ubuntu-latest
     if: contains(github.ref, 'refs/tags')
 
@@ -40,14 +43,16 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Yarn
+        run: npm install -g yarn
+
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Build and bundle
-        run: npm run build
+        run: yarn build
 
       - name: Publish to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          check-version: true
-          token: ${{ secrets.NPM_TOKEN }}
+        run: yarn publish --non-interactive
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
