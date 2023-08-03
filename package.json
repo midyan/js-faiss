@@ -25,7 +25,7 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "rollup -c rollup.config.js",
+    "build": "rm -rf build && rollup -c rollup.config.js",
     "build:watch": "yarn build --watch",
     "test": "jest --verbose --passWithNoTests",
     "test:watch": "yarn test --watch"
