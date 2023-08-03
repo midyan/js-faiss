@@ -31,7 +31,7 @@ describe("getEuclideanDistance", () => {
 });
 
 describe("createGridOfSize", () => {
-  it("should create created centered at 0", async () => {
+  it("should create grid centered at 0", async () => {
     const grid = create3DGridOfSize(9);
 
     fs.writeFileSync(
