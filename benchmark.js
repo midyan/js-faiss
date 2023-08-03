@@ -6,7 +6,9 @@ const hnswStore = jsFaiss.hnsw({
   baseNN: 32,
 });
 
-const testPoints = jsFaiss.utils.geometry.create3DGridOfSize(process.arg); // ~10k
+const testPoints = jsFaiss.utils.geometry.create3DGridOfSize(
+  Number(process.argv[2]),
+); // ~10k
 
 console.time(`Adding ${testPoints.length} points to HNSW`);
 hnswStore.add(testPoints);
