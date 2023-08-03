@@ -10,21 +10,26 @@ module.exports = {
     {
       file: "build/index.cjs.js",
       format: "cjs",
+      sourcemap: true,
     },
     {
       file: "build/index.esm.js",
       format: "esm",
+      sourcemap: true,
     },
     {
       file: "build/index.umd.js",
       format: "umd",
       name: "JS-FAISS",
+      sourcemap: true,
     },
   ],
   plugins: [
     typescript({
       tsconfig: "tsconfig.json",
       useTsconfigDeclarationDir: true,
+      sourceMap: true,
+      inlineSources: true,
     }),
     resolve(),
     commonjs(),
