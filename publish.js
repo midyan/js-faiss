@@ -24,7 +24,7 @@ const publish = () => {
 
   execSync(
     [
-      `git add pacakge.json`,
+      `git add package.json`,
       `git commit -m v${newVersion} `,
       `git tag -a v$${newVersion} -m v$${newVersion} `,
       `git push --tags `,
