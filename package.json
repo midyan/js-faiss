@@ -1,6 +1,6 @@
 {
   "name": "js-faiss",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "build/index.cjs.js",
   "module": "build/index.esm.js",
   "types": "build/index.d.ts",
@@ -24,8 +24,7 @@
     }
   },
   "scripts": {
-    "pub": "node publish.js",
-    "git-publish": "git commit -m $TAG && git tag -a v$TAG -m v$TAG && git push --tags && git push",
+    "git-publish": "node publish.js",
     "check": "tsc --noEmit",
     "build": "rm -rf build && rollup -c rollup.config.js",
     "build:watch": "yarn build --watch",

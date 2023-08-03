@@ -1,7 +1,8 @@
 /* eslint-disable */
 
-const semver = require("semver");
 const fs = require("fs");
+const semver = require("semver");
+
 const { execSync } = require("child_process");
 
 const packageJson = require("./package.json");
@@ -15,17 +16,18 @@ const publish = () => {
 
   const newVersion = semver.inc(packageJson.version, type);
 
-  packageJson.version = newVersion;
-
   console.log(`Updating from ${packageJson.version} to ${newVersion}`);
+
+  packageJson.version = newVersion;
 
   fs.writeFileSync("./package.json", JSON.stringify(packageJson, null, 2));
 
-  execSync("yarn git-publish", {
-    env: {
-      TAG: newVersion,
+  execSync(
+    `git commit -m $${newVersion} && git tag -a v$${newVersion} -m v$${newVersion} && git push --tags && git push`,
+    {
+      stdio: "inherit",
     },
-  });
+  );
 };
 
 publish();
