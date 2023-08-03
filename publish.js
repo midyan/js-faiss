@@ -23,7 +23,13 @@ const publish = () => {
   fs.writeFileSync("./package.json", JSON.stringify(packageJson, null, 2));
 
   execSync(
-    `git tag -a v$${newVersion} -m v$${newVersion} && git push --tags && git push`,
+    [
+      `git add pacakge.json`,
+      `git commit -m v${newVersion} `,
+      `git tag -a v$${newVersion} -m v$${newVersion} `,
+      `git push --tags `,
+      `git push`,
+    ].join(" && "),
     {
       stdio: "inherit",
     },
