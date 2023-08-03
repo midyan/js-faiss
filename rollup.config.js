@@ -21,5 +21,13 @@ module.exports = {
       name: "JS-FAISS",
     },
   ],
-  plugins: [typescript(), resolve(), commonjs(), terser()],
+  plugins: [
+    typescript({
+      tsconfig: "tsconfig.json",
+      useTsconfigDeclarationDir: true,
+    }),
+    resolve(),
+    commonjs(),
+    terser(),
+  ],
 };

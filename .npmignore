@@ -1,0 +1,9 @@
+# exclude everything
+*
+
+# allow only the build folder
+!build/
+
+# allow TypeScript types
+!dist/    # if TypeScript types are here
+!types/   # if TypeScript types are here

@@ -22,6 +22,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "outDir": "./build",
+    "declaration": true,
+    "declarationDir": "./build",
     "useDefineForClassFields": true
   },
   "include": [
